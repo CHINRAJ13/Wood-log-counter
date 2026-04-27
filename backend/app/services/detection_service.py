@@ -17,7 +17,7 @@ class LogDetectionService:
     def __init__(self):
         self.model = None
         self.model_loaded = False
-        self._load_model()
+        # self._load_model()
 
     def _load_model(self):
         """Load YOLOv8 model. Falls back to base model if custom not found."""
@@ -37,6 +37,12 @@ class LogDetectionService:
             self.model = YOLO("yolov8n.pt")
             self.model_loaded = False
 
+    def _ensure_model_loaded(self):
+    """Load model only when first needed."""
+    if self.model is None:
+        self._load_model()
+
+
     def detect(self, image: np.ndarray) -> dict:
         """
         Run detection on a numpy image array.
@@ -47,6 +53,8 @@ class LogDetectionService:
         Returns:
             dict with count, detections, annotated_image, image_shape
         """
+
+        self._ensure_model_loaded()
         results = self.model(
             image,
             conf=settings.CONFIDENCE_THRESHOLD,
