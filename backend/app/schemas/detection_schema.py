@@ -35,7 +35,7 @@ class DetectionResponse(BaseModel):
     message: str
 
 
-# ── Live Frame Request & Response ─────────────────────────────────────────────
+# ── Live Frame ────────────────────────────────────────────────────────────────
 
 class LiveFrameRequest(BaseModel):
     image_base64: str = Field(..., description="Base64 encoded camera frame")

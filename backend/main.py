@@ -7,7 +7,7 @@ from app.config import settings
 
 app = FastAPI(
     title="Wood Log Counter API",
-    description="AI-powered wood log counting using YOLOv8",
+    description="AI-powered wood log counting using Roboflow Cloud",
     version="1.0.0"
 )
 

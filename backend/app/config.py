@@ -2,17 +2,16 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Model
-    MODEL_PATH: str = "models/wood_logs.pt"
-    CONFIDENCE_THRESHOLD: float = 0.5
-    IOU_THRESHOLD: float = 0.45
-    IMAGE_SIZE: int = 640
+    # Roboflow cloud settings
+    ROBOFLOW_API_KEY: str = "your_api_key_here"
+    ROBOFLOW_MODEL_ID: str = "my-first-project-lca2k"
+    ROBOFLOW_VERSION: int = 2
 
-    # Upload
+    # Detection settings
+    CONFIDENCE_THRESHOLD: float = 0.5
     MAX_IMAGE_SIZE_MB: int = 10
     ALLOWED_EXTENSIONS: list = ["jpg", "jpeg", "png", "webp"]
 
-    # App
     DEBUG: bool = True
 
     class Config:

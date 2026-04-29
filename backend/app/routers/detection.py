@@ -49,12 +49,14 @@ def build_response(result: dict, include_image: bool = True) -> dict:
     ]
     count = result["count"]
     return {
-        "success": True,
-        "count": count,
-        "detections": detections,
+        "success":     True,
+        "count":       count,
+        "detections":  detections,
         "image_shape": ImageShape(**result["image_shape"]),
-        "annotated_image_base64": image_to_base64(result["annotated_image"]) if include_image else None,
-        "model_trained": result.get("model_loaded", False),
+        "annotated_image_base64": (
+            image_to_base64(result["annotated_image"]) if include_image else None
+        ),
+        "model_trained": result.get("model_loaded", True),
         "message": f"Detected {count} wood log{'s' if count != 1 else ''}."
     }
 
@@ -67,25 +69,26 @@ def build_response(result: dict, include_image: bool = True) -> dict:
     summary="Upload image file to count wood logs"
 )
 async def detect_upload(
-    file: UploadFile = File(..., description="JPG/PNG image of wood logs")
+    file: UploadFile = File(..., description="JPG/PNG/WEBP image of wood logs")
 ):
-    # Validate extension
+    # Validate file extension
     ext = file.filename.split(".")[-1].lower()
     if ext not in settings.ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"File type '.{ext}' not allowed. Use: {settings.ALLOWED_EXTENSIONS}"
+            detail=f"File type '.{ext}' not allowed. Supported: {settings.ALLOWED_EXTENSIONS}"
         )
 
-    # Validate size
+    # Validate file size
     raw = await file.read()
-    if len(raw) / (1024 * 1024) > settings.MAX_IMAGE_SIZE_MB:
+    size_mb = len(raw) / (1024 * 1024)
+    if size_mb > settings.MAX_IMAGE_SIZE_MB:
         raise HTTPException(
             status_code=400,
-            detail=f"File too large. Max size: {settings.MAX_IMAGE_SIZE_MB}MB"
+            detail=f"File too large ({size_mb:.1f}MB). Max: {settings.MAX_IMAGE_SIZE_MB}MB"
         )
 
-    image = bytes_to_image(raw)
+    image  = bytes_to_image(raw)
     result = detection_service.detect(image)
     return DetectionResponse(**build_response(result, include_image=True))
 
@@ -95,10 +98,10 @@ async def detect_upload(
 @router.post(
     "/detect/base64",
     response_model=DetectionResponse,
-    summary="Send base64 image to count wood logs"
+    summary="Send base64 encoded image to count wood logs"
 )
 async def detect_base64(request: LiveFrameRequest):
-    image = base64_to_image(request.image_base64)
+    image  = base64_to_image(request.image_base64)
     result = detection_service.detect(image)
     return DetectionResponse(**build_response(result, include_image=True))
 
@@ -108,10 +111,10 @@ async def detect_base64(request: LiveFrameRequest):
 @router.post(
     "/detect/live",
     response_model=LiveFrameResponse,
-    summary="Process live camera frame (fast, no annotated image returned)"
+    summary="Process live camera frame — fast, no annotated image returned"
 )
 async def detect_live(request: LiveFrameRequest):
-    image = base64_to_image(request.image_base64)
+    image  = base64_to_image(request.image_base64)
     result = detection_service.detect(image)
 
     detections = [
@@ -140,9 +143,9 @@ async def detect_live(request: LiveFrameRequest):
     summary="Submit manual correction to AI count"
 )
 async def correct_count(request: CorrectionRequest):
-    diff = request.corrected_count - request.original_count
+    diff      = request.corrected_count - request.original_count
+    abs_diff  = abs(diff)
     direction = "added" if diff > 0 else "removed"
-    abs_diff = abs(diff)
 
     return CorrectionResponse(
         success=True,
@@ -160,7 +163,7 @@ async def correct_count(request: CorrectionRequest):
 
 @router.get(
     "/model/info",
-    summary="Get model configuration and status"
+    summary="Get Roboflow model info and configuration"
 )
 def model_info():
     return detection_service.get_model_info()
