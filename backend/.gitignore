@@ -1,6 +1,15 @@
 venv/
-__pycache__/
-*.pyc
-.env
-models/
-training/
+
+# Run in your project root terminal
+echo "backend/dataset/" >> .gitignore
+echo "backend/models/" >> .gitignore
+echo "backend/runs/" >> .gitignore
+echo "backend/training/" >> .gitignore
+echo "backend/__pycache__/" >> .gitignore
+echo "backend/.env" >> .gitignore
+
+# Remove them from git tracking
+git rm -r --cached backend/dataset/
+git rm -r --cached backend/models/
+git rm -r --cached backend/runs/
+git rm -r --cached backend/training/
